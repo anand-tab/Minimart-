@@ -2,8 +2,7 @@ package com.anand.auth_service.service;
 
 
 import com.anand.auth_service.client.UserServiceClient;
-import com.anand.auth_service.dto.RegisterRequest;
-import com.anand.auth_service.dto.User;
+import com.anand.auth_service.dto.*;
 import com.anand.auth_service.entity.AuthUser;
 import com.anand.auth_service.repository.AuthUserRepository;
 import com.anand.auth_service.security.JwtUtil;
@@ -12,6 +11,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -25,6 +26,7 @@ public class AuthService {
     @Autowired
     private  UserServiceClient userServiceClient;
 
+    //register user
     public void registerUser(RegisterRequest registerRequest) {
         if(authUserRepository.findByEmail(registerRequest.getEmail()).isPresent()){
             throw new RuntimeException("Email already exists");
@@ -33,6 +35,7 @@ public class AuthService {
                 .email(registerRequest.getEmail())
                 .password(passwordEncoder.encode(registerRequest.getPassword()))
                 .role("USER")
+                .enabled(true)
                 .build();
 
         AuthUser saveAuthUser = authUserRepository.save(authUser);
@@ -45,6 +48,51 @@ public class AuthService {
             User user = userServiceClient.createUser(user1);
 
             log.info("User is created");
+        return;
+    }
+
+    //login
+    public AuthResponse login(LoginRequest request) {
+        AuthUser user = authUserRepository.findByEmail(request.getEmail())
+                .orElseThrow(() -> new RuntimeException("Invalid credentials"));
+
+        if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
+            throw new RuntimeException("Invalid credentials");
+        }
+
+        String token = jwtUtil.generateToken(
+                user.getAuthId(),
+                user.getEmail(),
+                user.getRole()
+        );
+
+        return new AuthResponse(token);
+    }
+
+    //user created by admin
+    public void registerbyAdmin(RegisterReqByAdmin registerReqByAdmin) {
+        if(authUserRepository.findByEmail(registerReqByAdmin.getEmail()).isPresent()){
+            throw new RuntimeException("Email already exists");
+        }
+        AuthUser authUser = AuthUser.builder()
+                .email(registerReqByAdmin.getEmail())
+                .password(passwordEncoder.encode(registerReqByAdmin.getPassword()))
+                .role(registerReqByAdmin.getRole())
+                .enabled(true)
+                .build();
+
+        AuthUser saveAuth =authUserRepository.save(authUser);
+
+        User user1 = User.builder()
+                .email(registerReqByAdmin.getEmail())
+                .name(registerReqByAdmin.getName())
+                .build();
+
+        log.info("Now posting to user-service");
+        User user = userServiceClient.createUser(user1);
+
+        log.info("User is created");
+
         return;
     }
 }
