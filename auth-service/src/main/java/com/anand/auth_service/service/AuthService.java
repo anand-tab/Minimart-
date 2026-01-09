@@ -69,11 +69,13 @@ public class AuthService {
         return new AuthResponse(token);
     }
 
-    //user created by admin
-    public void registerbyAdmin(RegisterReqByAdmin registerReqByAdmin) {
+
+    //Profile registered by ADMIN
+    public void registerByAdmin(RegisterReqByAdmin registerReqByAdmin) {
         if(authUserRepository.findByEmail(registerReqByAdmin.getEmail()).isPresent()){
-            throw new RuntimeException("Email already exists");
+            throw new RuntimeException("Email already exist");
         }
+        log.info("Email is verified");
         AuthUser authUser = AuthUser.builder()
                 .email(registerReqByAdmin.getEmail())
                 .password(passwordEncoder.encode(registerReqByAdmin.getPassword()))
@@ -81,18 +83,23 @@ public class AuthService {
                 .enabled(true)
                 .build();
 
-        AuthUser saveAuth =authUserRepository.save(authUser);
+        AuthUser authUser1 = authUserRepository.save(authUser);
 
-        User user1 = User.builder()
-                .email(registerReqByAdmin.getEmail())
+        log.info("user is saved in db");
+
+        User user = User.builder()
                 .name(registerReqByAdmin.getName())
+                .email(registerReqByAdmin.getEmail())
                 .build();
 
-        log.info("Now posting to user-service");
-        User user = userServiceClient.createUser(user1);
+        log.info("Profile is being saved in user");
+        User user1 = userServiceClient.createUser(user);
 
-        log.info("User is created");
 
+        log.info("Profile is registered in user db");
         return;
+
     }
+
+
 }

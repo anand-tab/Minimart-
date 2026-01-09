@@ -29,11 +29,6 @@ public class AuthController {
         return ResponseEntity.ok("User registered successfully");
     }
 
-    @GetMapping("/ping")
-    public void getMap(){
-        log.info("It is not running");
-        return;
-    }
 
     //login user
     @PostMapping("/login")
@@ -44,11 +39,10 @@ public class AuthController {
 
     //Register by admin
     @PreAuthorize("hasAuthority('ADMIN')") //it allows only request with role as admin to access the request
-    @PostMapping("/admin/create")
+    @PostMapping("/admin/register")
     public ResponseEntity<String> registerByAdmin(@RequestBody RegisterReqByAdmin registerReqByAdmin){
-        log.info("It reached Controller");
-        authService.registerbyAdmin(registerReqByAdmin);
-        return  ResponseEntity.ok("User registered successfully");
+        authService.registerByAdmin(registerReqByAdmin);
+        return ResponseEntity.ok("Profile was registered");
     }
 
 
