@@ -1,6 +1,7 @@
 package com.anand.auth_service.security;
 
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
@@ -16,6 +17,9 @@ import org.springframework.security.web.SecurityFilterChain;
 
 public class SecurityConfig {
 
+    @Autowired
+    private JwtAuthenticationFilter jwtAuthenticationFilter;
+
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
 
@@ -23,11 +27,15 @@ public class SecurityConfig {
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/auth/login", "/auth/register").permitAll()
-                        .requestMatchers("/auth/admin/**").hasAuthority("ADMIN")
+                        .requestMatchers("/auth/admin/register").permitAll()//.hasAuthority("ADMIN")
                         .anyRequest().authenticated()
                 )
                 .sessionManagement(session ->
                         session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+                )
+                .addFilterBefore(
+                        jwtAuthenticationFilter,
+                        org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter.class
                 );
 
         return http.build();

@@ -39,4 +39,30 @@ public class JwtUtil {
                 .parseClaimsJws(token)
                 .getBody();
     }
+
+    // Extract email (subject)
+    public String extractEmail(String token) {
+        return validateAndExtract(token).getSubject();
+    }
+
+    //Extract role
+    public String extractRole(String token) {
+        return validateAndExtract(token).get("role", String.class);
+    }
+
+    //Check token expiration
+    public boolean isTokenExpired(String token) {
+        return validateAndExtract(token)
+                .getExpiration()
+                .before(new Date());
+    }
+
+    //Final token validation
+    public boolean isTokenValid(String token) {
+        try {
+            return !isTokenExpired(token);
+        } catch (Exception e) {
+            return false;
+        }
+    }
 }
