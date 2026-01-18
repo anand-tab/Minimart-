@@ -1,0 +1,147 @@
+version: "3.9"
+
+networks:
+  minimart-net:
+    driver: bridge
+
+services:
+
+  # ========================
+  # EUREKA SERVER
+  # ========================
+  eureka-server:
+    build: ./eureka
+    container_name: eureka-server
+    ports:
+      - "8761:8761"
+    networks:
+      - minimart-net
+
+  # ========================
+  # API GATEWAY
+  # ========================
+  api-gateway:
+    build: ./apigateway
+    container_name: api-gateway
+    ports:
+      - "8080:8080"
+    depends_on:
+      - eureka-server
+    networks:
+      - minimart-net
+
+  # ========================
+  # AUTH DATABASE
+  # ========================
+  auth-db:
+    image: postgres:15
+    container_name: auth-db
+    environment:
+      POSTGRES_DB: authdb
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5433:5432"
+    networks:
+      - minimart-net
+
+  # ========================
+  # AUTH SERVICE
+  # ========================
+  auth-service:
+    build: ./auth-service
+    container_name: auth-service
+    depends_on:
+      - eureka-server
+      - auth-db
+    ports:
+      - "8084:8084"
+    networks:
+      - minimart-net
+
+  # ========================
+  # USER DATABASE
+  # ========================
+  user-db:
+    image: postgres:15
+    container_name: user-db
+    environment:
+      POSTGRES_DB: userdb
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5434:5432"
+    networks:
+      - minimart-net
+
+  # ========================
+  # USER SERVICE
+  # ========================
+  user-service:
+    build: ./userservice
+    container_name: user-service
+    depends_on:
+      - eureka-server
+      - user-db
+    ports:
+      - "8081:8081"
+    networks:
+      - minimart-net
+
+  # ========================
+  # PRODUCT DATABASE
+  # ========================
+  product-db:
+    image: postgres:15
+    container_name: product-db
+    environment:
+      POSTGRES_DB: productdb
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5435:5432"
+    networks:
+      - minimart-net
+
+  # ========================
+  # PRODUCT SERVICE
+  # ========================
+  product-service:
+    build: ./productservice
+    container_name: product-service
+    depends_on:
+      - eureka-server
+      - product-db
+    ports:
+      - "8082:8082"
+    networks:
+      - minimart-net
+
+  # ========================
+  # ORDER DATABASE
+  # ========================
+  order-db:
+    image: postgres:15
+    container_name: order-db
+    environment:
+      POSTGRES_DB: orderdb
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5436:5432"
+    networks:
+      - minimart-net
+
+  # ========================
+  # ORDER SERVICE
+  # ========================
+  order-service:
+    build: ./orderservice
+    container_name: order-service
+    depends_on:
+      - eureka-server
+      - order-db
+    ports:
+      - "8083:8083"
+    networks:
+      - minimart-net

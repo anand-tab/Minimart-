@@ -1,15 +1,25 @@
 server:
   port: 8083
+
 spring:
   application:
     name: order-service
   datasource:
-    url: jdbc:postgresql://localhost:5432/minimartdb
+    url: jdbc:postgresql://order-db:5432/orderdb
     username: postgres
-    password: somu
+    password: postgres
     driver-class-name: org.postgresql.Driver
 
   jpa:
     hibernate:
       ddl-auto: update
     database-platform: org.hibernate.dialect.PostgreSQLDialect
+
+eureka:
+  client:
+    register-with-eureka: true
+    fetch-registry: true
+    service-url:
+      defaultZone: http://eureka-server:8761/eureka
+  instance:
+    prefer-ip-address: true
